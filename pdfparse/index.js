@@ -35,12 +35,12 @@ const pdfAObjt = (numeroE) =>
 
       async function resolveAfter(url) {
         let dataObj = { raza: [], tamano: [], img: [] };
-        let dataOk = { 
+        let dataOk = {
           raza: {
             nombre1: String,
-            nombre2: String
-          }
-        }
+            nombre2: String,
+          },
+        };
 
         const pushImg = (data) =>
           new Promise(async (resolve, reject) => {
@@ -96,8 +96,6 @@ const pdfAObjt = (numeroE) =>
         let dataBuffer = fs.readFileSync(url);
 
         await pdf(dataBuffer).then(function (data) {
-          let arrText = [];
-          
           const nombre = () => {
             let dat = data.text.replace("FCI-St.", "*+*+");
             dat = dat.split("Estándar-FCI");
@@ -106,23 +104,118 @@ const pdfAObjt = (numeroE) =>
             const dat2 = [];
             name.forEach((element, i) => {
               if (i > 0) {
-                element = element.replace(/^ /, '').replace(/ $/, '')
-                const splitespacio = element.split("\n")
-                splitespacio.forEach(element => {
-                  if (element.length > 2){
+                element = element.replace(/^ /, "").replace(/ $/, "");
+                const splitespacio = element.split("\n");
+                splitespacio.forEach((element) => {
+                  if (element.length > 2) {
                     dat2.push(element);
-                  }                  
+                  }
                 });
               }
             });
-            if (dat2.length > 1){
-              dataOk.nombre1 = dat2[0],
-              dataOk.nombre2 = dat2[1]
+            if (dat2.length > 1) {
+              (dataOk.nombre1 = dat2[0]), (dataOk.nombre2 = dat2[1]);
             } else {
-              dataOk.nombre1 = dat2[0]
+              dataOk.nombre1 = dat2[0];
             }
-            return dat[1]
+            return dat[1];
           };
+
+          const filtro1 = () => {
+            let dataParse1 = nombre();
+            dataParse1 = dataParse1.replace(/ {1,}/g, " ");
+            dataParse1 = dataParse1.split(/\n \n{1,}/);
+            const dat2 = [];
+            dataParse1.forEach((e) => {
+              if (!/fci|FCI/g.test(e)) {
+                dat2.push(e);
+              }
+            });
+            const filtroOk = dat2.join(`
+`);
+            return filtroOk;
+          };
+
+          const indexParse = (a, b) => {
+            const dataParse1 = filtro1();
+            const indexA = dataParse1.indexOf(a);
+            const indexB = dataParse1.indexOf(b);
+            if (indexA === -1 || indexB === -1) {
+              return null;
+            }
+            let dataStrParse = "";
+            for (let index = indexA; index < indexB; index++) {
+              dataStrParse += dataParse1[index];
+            }
+            // console.log(dataParse1);
+            return dataStrParse;
+          };
+
+          const claves = [
+            "ORIGEN",
+            "FECHA",
+            "UTILIZACIÓN",
+            "APARIENCIA GENERAL",
+            "COMPORTAMIENTO / TEMPERAMENTO",
+            "CABEZA",
+            "REGIÓN CRANEAL",
+            "REGIÓN FACIAL",
+            "OJOS",
+            "OREJAS",
+            "CUELLO",
+            "CUERPO",
+            "COLA",
+            "EXTREMIDADES",
+            "MIEMBROS ANTERIORES",
+            "MIEMBROS POSTERIORES",
+            "MOVIMIENTO",
+            "MANTO",
+            "TAMAÑO Y PESO",
+            "FALTAS",
+            "FALTAS GRAVES",
+            "FALTAS DESCALIFICANTES",
+          ];
+
+          const parse = () => {
+            claves.forEach((e, i) => {
+              let arrREt = [];
+              if (i + 1 < claves.length) {
+                let data = indexParse(e, claves[i + 1]);
+                if (data === null) {
+                  return console.log(
+                    "Error: No aparece la clave en el documento"
+                  );
+                } else {
+                  data = data.split(`${e}:`);
+                  data.forEach((element) => {
+                    if (element.length > 0) {
+                      arrREt.push(element);
+                    }
+                  });
+                }
+                let key = e.replace(/ /g, '');
+                if (key === "UTILIZACIÓN") {
+                  key = "UTILIZACION";
+                } else if (key === "COMPORTAMIENTO/TEMPERAMENTO") {
+                  key = "COMPORTAMIENTO";
+                } else if (key === "REGIÓNCRANEAL") {
+                  key = "REGIONCRANEAL";
+                } else if (key === "REGIÓNFACIAL") {
+                  key = "REGIONFACIAL";
+                } else if (key === "TAMAÑOYPESO") {
+                  key = "TAMANOYPESO";
+                }
+
+                if (key != "EXTREMIDADES") {
+                  dataOk[key] = arrREt;
+                }
+              }
+            });
+            console.log(dataOk);
+          };
+
+          parse();
+
           // const arrParse = data.text.split(/\n \n{1,}/)
           // arrParse.forEach((element, i) => {
           //   element = element.replace(/\n/g, ' ')
@@ -132,7 +225,6 @@ const pdfAObjt = (numeroE) =>
           //     }
           //   }
           // });
-          const dataParse1 = nombre();
 
           // let arrText2 = [];
           // arrText.forEach((element, i) => {

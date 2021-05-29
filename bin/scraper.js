@@ -16,7 +16,7 @@ mongoose.connection.once("open", () => {
     `*** Connected to the database ${mongoose.connection.db.databaseName} ***`
   );  
     
-    pdfAObjt(1)
+    pdfAObjt(33)
     .then((data) => {
       // console.log(data)
       // BreedsFci.create(data)
