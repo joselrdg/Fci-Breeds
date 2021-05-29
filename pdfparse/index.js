@@ -41,6 +41,7 @@ const pdfAObjt = (numeroE) =>
             nombre2: String,
           },
         };
+        let errores = [];
 
         const pushImg = (data) =>
           new Promise(async (resolve, reject) => {
@@ -137,9 +138,13 @@ const pdfAObjt = (numeroE) =>
           };
 
           const indexParse = (a, b) => {
+
             const dataParse1 = filtro1();
             const indexA = dataParse1.indexOf(a);
-            const indexB = dataParse1.indexOf(b);
+            let indexB = dataParse1.indexOf(b);
+            if (a === 'FALTAS'){
+              indexB = dataParse1.length
+            }
             if (indexA === -1 || indexB === -1) {
               return null;
             }
@@ -170,52 +175,52 @@ const pdfAObjt = (numeroE) =>
             "MIEMBROS POSTERIORES",
             "MOVIMIENTO",
             "MANTO",
-            "TAMAÑO Y PESO",
+            "TAMAÑO",
             "FALTAS",
-            "FALTAS GRAVES",
-            "FALTAS DESCALIFICANTES",
+            // "FALTAS GRAVES",
+            // "FALTAS DESCALIFICANTES",
           ];
-
+        
           const parse = () => {
             claves.forEach((e, i) => {
               let arrREt = [];
-              if (i + 1 < claves.length) {
-                let data = indexParse(e, claves[i + 1]);
-                if (data === null) {
-                  return console.log(
-                    "Error: No aparece la clave en el documento"
-                  );
-                } else {
-                  data = data.split(`${e}:`);
-                  data.forEach((element) => {
-                    if (element.length > 0) {
-                      arrREt.push(element);
-                    }
-                  });
-                }
-                let key = e.replace(/ /g, '');
-                if (key === "UTILIZACIÓN") {
-                  key = "UTILIZACION";
-                } else if (key === "COMPORTAMIENTO/TEMPERAMENTO") {
-                  key = "COMPORTAMIENTO";
-                } else if (key === "REGIÓNCRANEAL") {
-                  key = "REGIONCRANEAL";
-                } else if (key === "REGIÓNFACIAL") {
-                  key = "REGIONFACIAL";
-                } else if (key === "TAMAÑOYPESO") {
-                  key = "TAMANOYPESO";
-                }
-
-                if (key != "EXTREMIDADES") {
-                  dataOk[key] = arrREt;
-                }
+              // if (i  < claves.length) {
+              let data = indexParse(e, claves[i + 1]);
+              if (data === null) {
+                errores.push({ pdf: `${contador}.dpf`, clave: e });
+                return console.log(
+                  "Error: No aparece la clave en el documento"
+                );
+              } else {
+                data = data.split(`${e}:`);
+                data.forEach((element) => {
+                  if (element.length > 0) {
+                    arrREt.push(element);
+                  }
+                });
               }
+              let key = e.replace(/ /g, "");
+              if (key === "UTILIZACIÓN") {
+                key = "UTILIZACION";
+              } else if (key === "COMPORTAMIENTO/TEMPERAMENTO") {
+                key = "COMPORTAMIENTO";
+              } else if (key === "REGIÓNCRANEAL") {
+                key = "REGIONCRANEAL";
+              } else if (key === "REGIÓNFACIAL") {
+                key = "REGIONFACIAL";
+              } else if (key === "TAMAÑOYPESO") {
+                key = "TAMANOYPESO";
+              }
+
+              if (key != "EXTREMIDADES") {
+                dataOk[key] = arrREt;
+              }
+              // }
             });
-            console.log(dataOk);
+            console.log(errores);
+            return dataOk;
           };
-
-          parse();
-
+  parse()
           // const arrParse = data.text.split(/\n \n{1,}/)
           // arrParse.forEach((element, i) => {
           //   element = element.replace(/\n/g, ' ')
