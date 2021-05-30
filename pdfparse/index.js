@@ -16,7 +16,7 @@ const pdfAObjt = (numeroE, idioma) =>
     const errores = [];
     try {
       for (let i = 0; i < numeroE; i++) {
-        const name = `/tmp/${i}.pdf`;
+        const name = `/tmp/breeds/${idioma}/${i}.pdf`;
         // const name = `/tmp/2.pdf`
         nombPdf.push(name);
       }
@@ -29,14 +29,14 @@ const pdfAObjt = (numeroE, idioma) =>
         if (contador < numeroE) {
           resolveAfter(nombPdf[contador]);
         } else {
-          console.log("Tarea completada");
+          console.log(`${contador} Pdfs procesados. Tarea completada`);
           resolve([arrData, errores]);
         }
       };
 
       async function resolveAfter(url) {
         let dataObj = { raza: [], tamano: [], img: [] };
-        let dataOk = {};
+        let dataOk = { language: idioma };
 
         const pushImg = (data) =>
           new Promise(async (resolve, reject) => {
@@ -71,7 +71,7 @@ const pdfAObjt = (numeroE, idioma) =>
           }
 
           arrData.push(dataOk);
-          console.log("Objeto creado. Pdfs procesados: " + (contador + 1));
+          console.log("Objeto creado. Pdf: " + (contador + 1));
           contador++;
           contadorFun();
           //     })
@@ -93,7 +93,7 @@ const pdfAObjt = (numeroE, idioma) =>
 
         await pdf(dataBuffer).then(function (data) {
           const nombre = () => {
-            let dat = data.text.replace(/ N° | n° | Nº /, "*+*+");
+            let dat = data.text.replace(/ N°| n° | Nº | Nr/, "*+*+");
             // if (contador === 47) {
             //   dat = dat.replace("FCI-St", "*.*.");
             //   dat = dat.replace("*+*+", "FCI-St");
@@ -111,7 +111,6 @@ const pdfAObjt = (numeroE, idioma) =>
             // }
             dat = dat[1].replace("FCI", "*+*+");
             dat = dat.split("*+*+");
-
             let name = dat[0].split("\n");
             const dat2 = [];
             name.forEach((element, i) => {
@@ -136,7 +135,7 @@ const pdfAObjt = (numeroE, idioma) =>
             return dat;
           };
           let claves = [];
-          if (idioma === "") {
+          if (idioma === "es") {
             claves = [
               "ORIGEN",
               "FECHA",
@@ -162,8 +161,7 @@ const pdfAObjt = (numeroE, idioma) =>
               // "FALTAS GRAVES",
               // "FALTAS DESCALIFICANTES",
             ];
-          }
-          if (idioma === "en") {
+          } else if (idioma === "en") {
             claves = [
               "ORIGIN",
               "DATE",
@@ -188,9 +186,79 @@ const pdfAObjt = (numeroE, idioma) =>
               "GAIT / MOVEMENT",
               "GAIT/MOVEMENT",
               "COAT",
-              'Colour',
+              "Colour",
               "SIZE",
               "FAULTS",
+              // "FALTAS GRAVES",
+              // "FALTAS DESCALIFICANTES",
+            ];
+          } else if (idioma === "de") {
+            claves = [
+              "URSPRUNG",
+              "DATUM",
+              // "UTILIZATION",
+              "KURZER GESCHICHTLICHER ABRISS",
+              "ALLGEMEINES ERSCHEINUNGSBILD",
+              "WICHTIGE PROPORTIONEN",
+              "VERHALTEN / CHARAKTER",
+              "VERHALTEN/CHARAKTER",
+              "KOPF",
+              "OBERKOPF",
+              "GESICHTSSCHÄDEL",
+              "AUGEN",
+              "OHREN",
+              "HALS",
+              "KÖRPER",
+              "RUTE",
+              "GLIEDMASSEN",
+              "VORDERGLIEDMASSEN",
+              "HINTERGLIEDMASSEN",
+              "GANGWERK",
+              "HAUT",
+              "HAARKLEID",
+              "GEWICHT",
+              "FEHLER",
+              // "FALTAS GRAVES",
+              // "FALTAS DESCALIFICANTES",
+            ];
+          } else if (idioma === "fr") {
+            claves = [
+              "ORIGINE",
+              "DATE",
+              "UTILISATION",
+              "BREF APERCU HISTORIQUE",
+              "ASPECT GENERAL",
+              "Aspect général",
+              "PROPORTIONS IMPORTANTES",
+              "Proportions importantes",
+              "COMPORTEMENT / CARACTERE",
+              "COMPORTEMENT/CARACTERE",
+              "Comportement / caractère",
+              "Comportement/caractère",
+              "TETE",
+              "Tête",
+              "REGION CRANIENNE",
+              "REGION FACIALE",
+              "YEUX",
+              "yeux",
+              "OREILLES",
+              "Oreilles",
+              "COU",
+              "CORPS",
+              "QUEUE",
+              "MEMBRES",
+              "MEMBRES ANTERIEURS",
+              "Membres antérieurs",
+              "MEMBRES POSTERIEURS",
+              "Membres postérieurs",
+              "ALLURES",
+              "PEAU",
+              "ROBE",
+              "TAILLE ET POIDS",
+              "TAILLE / POIDS",
+              "TAILLE/POIDS",
+              "DEFAUTS",
+              "Défauts",
               // "FALTAS GRAVES",
               // "FALTAS DESCALIFICANTES",
             ];
@@ -216,8 +284,14 @@ const pdfAObjt = (numeroE, idioma) =>
             let indexA = dataParse1.indexOf(a);
             let indexB = dataParse1.indexOf(b);
             let toUpA = a;
-            
-            if (a === "FALTAS" || a === "FAULTS") {
+
+            if (
+              a === "FALTAS" ||
+              a === "FAULTS" ||
+              a === "FEHLER" ||
+              a === "DEFAUTS" ||
+              a === "Défauts"
+            ) {
               indexB = dataParse1.length;
             } else if (indexA === -1) {
               toUpA = "";
@@ -247,12 +321,12 @@ const pdfAObjt = (numeroE, idioma) =>
               }
             }
             if (indexA === -1 || indexB === -1) {
-
-              console.log(a + indexA)
-              console.log(b + ' + ' + indexB)
-              console.log(dataParse1)
-              console.log('--------------------------dataParse1----------------------------')
-
+              console.log(a + indexA);
+              console.log(b + " + " + indexB);
+              // console.log(dataParse1)
+              console.log(
+                "--------------------------dataParse1----------------------------"
+              );
 
               return null;
             }
