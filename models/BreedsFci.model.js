@@ -1,35 +1,31 @@
 const mongoose = require("mongoose");
-const mongoosePaginate = require('mongoose-paginate-v2');
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 const breedsSchema = mongoose.Schema(
   {
-    raza: [{type: String,
-      required: "Breed is required",}],
-    tamano: [String],
     grupo: Number,
-    img:[Object],
-    origen: [String],
-    fecha: [String],
-    utilizado: [String],
-    historia: [String],
-    apariencia: [String],
-    comportamiento: [String],
-    cabeza: [String],
-    craneal: [String],
-    facial: [String],
-    ojos: [String],
-    orejas: [String],
-    cuello: [String],
-    cuerpo: [String],
-    eanteriores: [String],
-    eposteriores: [String],
-    movimiento: [String],
-    piel: [String],
-    pelo: [String],
-    color: [String],
-    faltas: [String],
-    graves: [String],
-    descalificantes: [String]
+    NOMBRE1: String,
+    NOMBRE2: String,
+    ORIGEN: String,
+    FECHA: String,
+    UTILIZACION: String,
+    BREVERESUMENHISTORICO: String,
+    APARIENCIAGENERAL: String,
+    COMPORTAMIENTO: String,
+    CABEZA: String,
+    REGIONCRANEAL: String,
+    REGIONFACIAL: String,
+    OJOS: String,
+    OREJAS: String,
+    CUELLO: String,
+    CUERPO: String,
+    COLA: String,
+    MIEMBROSANTERIORES: String,
+    MIEMBROSPOSTERIORES: String,
+    MOVIMIENTO: String,
+    MANTO: String,
+    TAMANOYPESO: String,
+    FALTAS: String,
   },
   {
     timestamps: true,
@@ -44,7 +40,6 @@ const breedsSchema = mongoose.Schema(
 );
 
 breedsSchema.plugin(mongoosePaginate);
-
 
 const BreedsFci = mongoose.model("BreedsFci", breedsSchema);
 

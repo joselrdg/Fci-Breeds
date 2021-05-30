@@ -13,6 +13,8 @@ const pdfAObjt = (numeroE) =>
   new Promise(async (resolve, reject) => {
     const nombPdf = [];
     const arrData = [];
+    const errores = [];
+
     try {
       for (let i = 0; i < numeroE; i++) {
         const name = `/tmp/${i}.pdf`;
@@ -29,19 +31,13 @@ const pdfAObjt = (numeroE) =>
           resolveAfter(nombPdf[contador]);
         } else {
           console.log("Tarea terminada totalmente");
-          resolve(arrData);
+          resolve([arrData, errores]);
         }
       };
 
       async function resolveAfter(url) {
         let dataObj = { raza: [], tamano: [], img: [] };
-        let dataOk = {
-          raza: {
-            nombre1: String,
-            nombre2: String,
-          },
-        };
-        let errores = [];
+        let dataOk = {};
 
         const pushImg = (data) =>
           new Promise(async (resolve, reject) => {
@@ -56,32 +52,32 @@ const pdfAObjt = (numeroE) =>
           //       .then((e) => {
           //         console.log(dataObj.img)
           if (contador <= 41) {
-            dataObj.grupo = 1;
+            dataOk.grupo = 1;
           } else if (contador <= 93) {
-            dataObj.grupo = 2;
+            dataOk.grupo = 2;
           } else if (contador <= 127) {
-            dataObj.grupo = 3;
+            dataOk.grupo = 3;
           } else if (contador <= 167) {
-            dataObj.grupo = 5;
+            dataOk.grupo = 5;
           } else if (contador <= 236) {
-            dataObj.grupo = 6;
+            dataOk.grupo = 6;
           } else if (contador <= 270) {
-            dataObj.grupo = 7;
+            dataOk.grupo = 7;
           } else if (contador <= 292) {
-            dataObj.grupo = 8;
+            dataOk.grupo = 8;
           } else if (contador <= 318) {
-            dataObj.grupo = 9;
+            dataOk.grupo = 9;
           } else {
-            dataObj.grupo = 10;
+            dataOk.grupo = 10;
           }
 
-          arrData.push(dataObj);
+          arrData.push(dataOk);
           console.log("Objeto creado. Pdfs procesados: " + (contador + 1));
           contador++;
-          contadorFun()
-            //     })
-            // })
-            .catch((e) => console.error(e));
+          contadorFun();
+          //     })
+          // })
+          // .catch((e) => console.error(e));
         };
 
         // const extimgD = () => {
@@ -98,68 +94,53 @@ const pdfAObjt = (numeroE) =>
 
         await pdf(dataBuffer).then(function (data) {
           const nombre = () => {
-            let dat = data.text.replace("FCI-St.", "*+*+");
-            dat = dat.split("Estándar-FCI");
-            dat = dat[1].split("*+*+");
-            let name = dat[0].split(/\n \n{1,}/);
+            let dat = data.text.replace("FCI-St", "*+*+");
+            if (contador === 47 || contador >= 300) {
+              dat = dat.split("*+*+");
+            } else if (contador === 190) {
+              dat = dat
+                .replace("Estándar-FCI", "*+*+")
+                .replace("Estándar FCI", "-.-.-");
+              dat = dat.split("*+*+");
+              dat = dat[1].split("-.-.-");
+            } else if (contador >= 300 && contador <= 302) {
+              dat = dat.split("*+*+");
+            } else {
+              dat = dat.split("*+*+");
+            }
+
+            let name = dat[0].split("Estándar");
             const dat2 = [];
+            name = name[1].split("\n");
             name.forEach((element, i) => {
               if (i > 0) {
                 element = element.replace(/^ /, "").replace(/ $/, "");
                 const splitespacio = element.split("\n");
                 splitespacio.forEach((element) => {
-                  if (element.length > 2) {
+                  if (
+                    (element.length > 2 && element[0] != "©") ||
+                    (element.length > 2 && !/^Ilustración|^Válida/.test(element))
+                  ) {
                     dat2.push(element);
                   }
                 });
               }
             });
+            console.log(dat2);
+
             if (dat2.length > 1) {
-              (dataOk.nombre1 = dat2[0]), (dataOk.nombre2 = dat2[1]);
+              (dataOk.NOMBRE1 = dat2[0]), (dataOk.NOMBRE2 = dat2[1]);
             } else {
-              dataOk.nombre1 = dat2[0];
+              dataOk.NOMBRE1 = dat2[0];
             }
             return dat[1];
-          };
-
-          const filtro1 = () => {
-            let dataParse1 = nombre();
-            dataParse1 = dataParse1.replace(/ {1,}/g, " ");
-            dataParse1 = dataParse1.split(/\n \n{1,}/);
-            const dat2 = [];
-            dataParse1.forEach((e) => {
-              if (!/fci|FCI/g.test(e)) {
-                dat2.push(e);
-              }
-            });
-            const filtroOk = dat2.join(`
-`);
-            return filtroOk;
-          };
-
-          const indexParse = (a, b) => {
-
-            const dataParse1 = filtro1();
-            const indexA = dataParse1.indexOf(a);
-            let indexB = dataParse1.indexOf(b);
-            if (a === 'FALTAS'){
-              indexB = dataParse1.length
-            }
-            if (indexA === -1 || indexB === -1) {
-              return null;
-            }
-            let dataStrParse = "";
-            for (let index = indexA; index < indexB; index++) {
-              dataStrParse += dataParse1[index];
-            }
-            // console.log(dataParse1);
-            return dataStrParse;
           };
 
           const claves = [
             "ORIGEN",
             "FECHA",
             "UTILIZACIÓN",
+            "BREVE RESUMEN HISTÓRICO",
             "APARIENCIA GENERAL",
             "COMPORTAMIENTO / TEMPERAMENTO",
             "CABEZA",
@@ -180,21 +161,88 @@ const pdfAObjt = (numeroE) =>
             // "FALTAS GRAVES",
             // "FALTAS DESCALIFICANTES",
           ];
-        
+
+          const filtro1 = () => {
+            let dataParse1 = nombre();
+            dataParse1 = dataParse1.replace(/ {1,}/g, " ");
+            dataParse1 = dataParse1.split(/\n \n{1,}/);
+            const dat2 = [];
+            dataParse1.forEach((e) => {
+              if (!/fci|FCI/g.test(e)) {
+                dat2.push(e);
+              }
+            });
+            const filtroOk = dat2.join(`
+`);
+            return filtroOk;
+          };
+
+          const indexParse = (a, b, iClaves) => {
+            const dataParse1 = filtro1();
+            let indexA = dataParse1.indexOf(a);
+            let indexB = dataParse1.indexOf(b);
+            let toUpA = a;
+
+            if (a === "FALTAS") {
+              indexB = dataParse1.length;
+            } else if (indexA === -1) {
+              toUpA = "";
+              let minus = a.toLowerCase();
+              toUpA = a[0].toUpperCase();
+              for (let index = 1; index < minus.length; index++) {
+                toUpA += minus[index];
+              }
+              indexA = dataParse1.indexOf(toUpA);
+            } else if (indexB === -1) {
+              let minus = b.toLowerCase();
+              let toUp = b[0].toUpperCase();
+              for (let index = 1; index < minus.length; index++) {
+                toUp += minus[index];
+              }
+              indexB = dataParse1.indexOf(toUp);
+              // if (indexB === -1) {
+              //   let contador = iClaves + 1;
+              //   while (contador <= claves.length) {
+              //     indexB = dataParse1.indexOf(claves[contador]);
+              //     if (indexB === -1) {
+              //       contador++;
+              //     } else {
+              //       contador = claves.length + 2;
+              //     }
+              //   }
+              // }
+            }
+            if (indexA === -1 || indexB === -1) {
+              return null;
+            }
+            let dataStrParse = "";
+            for (let index = indexA; index < indexB; index++) {
+              dataStrParse += dataParse1[index];
+            }
+            return [dataStrParse, toUpA];
+          };
+
           const parse = () => {
             claves.forEach((e, i) => {
               let arrREt = [];
               // if (i  < claves.length) {
-              let data = indexParse(e, claves[i + 1]);
+              let data = indexParse(e, claves[i + 1], i);
               if (data === null) {
                 errores.push({ pdf: `${contador}.dpf`, clave: e });
-                return console.log(
-                  "Error: No aparece la clave en el documento"
-                );
+                // return console.log(
+                //   "Error: No aparece la clave en el documento"
+                // );
               } else {
-                data = data.split(`${e}:`);
+                data = data[0].split(`${data[1]}`);
                 data.forEach((element) => {
                   if (element.length > 0) {
+                    element = element.replace(/\n/g, " ");
+                    element = element.replace(/^: /, "");
+                    element = element.replace(/^ Y PESO:/, "");
+                    element = element.replace(/ {1,}/g, " ");
+                    element = element.replace(/^ /, "");
+                    element = element.replace(/ $/, "");
+
                     arrREt.push(element);
                   }
                 });
@@ -202,25 +250,29 @@ const pdfAObjt = (numeroE) =>
               let key = e.replace(/ /g, "");
               if (key === "UTILIZACIÓN") {
                 key = "UTILIZACION";
+              } else if (key.match("BREVE")) {
+                key = "BREVERESUMENHISTORICO";
               } else if (key === "COMPORTAMIENTO/TEMPERAMENTO") {
                 key = "COMPORTAMIENTO";
               } else if (key === "REGIÓNCRANEAL") {
                 key = "REGIONCRANEAL";
               } else if (key === "REGIÓNFACIAL") {
                 key = "REGIONFACIAL";
-              } else if (key === "TAMAÑOYPESO") {
+              } else if (key === "TAMAÑO") {
                 key = "TAMANOYPESO";
               }
 
               if (key != "EXTREMIDADES") {
-                dataOk[key] = arrREt;
+                // if (arrREt[0]) {
+                dataOk[key] = arrREt[0];
+                // }
               }
               // }
             });
-            console.log(errores);
+            // console.log(errores);
             return dataOk;
           };
-  parse()
+          parse();
           // const arrParse = data.text.split(/\n \n{1,}/)
           // arrParse.forEach((element, i) => {
           //   element = element.replace(/\n/g, ' ')
