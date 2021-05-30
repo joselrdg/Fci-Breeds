@@ -9,12 +9,11 @@ const pako = require("pako");
 const { PDFDocumentFactory, PDFName, PDFRawStream } = require("pdf-lib");
 const { Console } = require("console");
 
-const pdfAObjt = (numeroE) =>
+const pdfAObjt = (numeroE, idioma) =>
   new Promise(async (resolve, reject) => {
     const nombPdf = [];
     const arrData = [];
     const errores = [];
-
     try {
       for (let i = 0; i < numeroE; i++) {
         const name = `/tmp/${i}.pdf`;
@@ -30,7 +29,7 @@ const pdfAObjt = (numeroE) =>
         if (contador < numeroE) {
           resolveAfter(nombPdf[contador]);
         } else {
-          console.log("Tarea terminada totalmente");
+          console.log("Tarea completada");
           resolve([arrData, errores]);
         }
       };
@@ -94,73 +93,108 @@ const pdfAObjt = (numeroE) =>
 
         await pdf(dataBuffer).then(function (data) {
           const nombre = () => {
-            let dat = data.text.replace("FCI-St", "*+*+");
-            if (contador === 47 || contador >= 300) {
-              dat = dat.split("*+*+");
-            } else if (contador === 190) {
-              dat = dat
-                .replace("Estándar-FCI", "*+*+")
-                .replace("Estándar FCI", "-.-.-");
-              dat = dat.split("*+*+");
-              dat = dat[1].split("-.-.-");
-            } else if (contador >= 300 && contador <= 302) {
-              dat = dat.split("*+*+");
-            } else {
-              dat = dat.split("*+*+");
-            }
+            let dat = data.text.replace(/ N° | n° | Nº /, "*+*+");
+            // if (contador === 47) {
+            //   dat = dat.replace("FCI-St", "*.*.");
+            //   dat = dat.replace("*+*+", "FCI-St");
+            //   dat = dat.split("*.*.");
+            // } else if (contador === 190) {
+            //   dat = dat
+            //     .replace("Estándar-FCI", "*+*+")
+            //     .replace("Estándar FCI", "-.-.-");
+            //   dat = dat.split("*+*+");
+            //   dat = dat[1].split("-.-.-");
+            // } else if (contador >= 300 && contador <= 302) {
+            //   dat = dat.split("*+*+");
+            // } else {
+            dat = dat.split("*+*+");
+            // }
+            dat = dat[1].replace("FCI", "*+*+");
+            dat = dat.split("*+*+");
 
-            let name = dat[0].split("Estándar");
+            let name = dat[0].split("\n");
             const dat2 = [];
-            name = name[1].split("\n");
             name.forEach((element, i) => {
               if (i > 0) {
+                element = element.replace(/ {2,}/g, "");
                 element = element.replace(/^ /, "").replace(/ $/, "");
                 const splitespacio = element.split("\n");
                 splitespacio.forEach((element) => {
-                  if (
-                    (element.length > 2 && element[0] != "©") ||
-                    (element.length > 2 && !/^Ilustración|^Válida/.test(element))
-                  ) {
+                  if (element.length > 2 && element[0] != "©") {
                     dat2.push(element);
                   }
                 });
               }
             });
-            console.log(dat2);
 
             if (dat2.length > 1) {
               (dataOk.NOMBRE1 = dat2[0]), (dataOk.NOMBRE2 = dat2[1]);
             } else {
               dataOk.NOMBRE1 = dat2[0];
             }
-            return dat[1];
+            dat = dat[1].replace(/ {1,}/g, " ");
+            return dat;
           };
-
-          const claves = [
-            "ORIGEN",
-            "FECHA",
-            "UTILIZACIÓN",
-            "BREVE RESUMEN HISTÓRICO",
-            "APARIENCIA GENERAL",
-            "COMPORTAMIENTO / TEMPERAMENTO",
-            "CABEZA",
-            "REGIÓN CRANEAL",
-            "REGIÓN FACIAL",
-            "OJOS",
-            "OREJAS",
-            "CUELLO",
-            "CUERPO",
-            "COLA",
-            "EXTREMIDADES",
-            "MIEMBROS ANTERIORES",
-            "MIEMBROS POSTERIORES",
-            "MOVIMIENTO",
-            "MANTO",
-            "TAMAÑO",
-            "FALTAS",
-            // "FALTAS GRAVES",
-            // "FALTAS DESCALIFICANTES",
-          ];
+          let claves = [];
+          if (idioma === "") {
+            claves = [
+              "ORIGEN",
+              "FECHA",
+              "UTILIZACIÓN",
+              "BREVE RESUMEN HISTÓRICO",
+              "APARIENCIA GENERAL",
+              "COMPORTAMIENTO / TEMPERAMENTO",
+              "CABEZA",
+              "REGIÓN CRANEAL",
+              "REGIÓN FACIAL",
+              "OJOS",
+              "OREJAS",
+              "CUELLO",
+              "CUERPO",
+              "COLA",
+              "EXTREMIDADES",
+              "MIEMBROS ANTERIORES",
+              "MIEMBROS POSTERIORES",
+              "MOVIMIENTO",
+              "MANTO",
+              "TAMAÑO",
+              "FALTAS",
+              // "FALTAS GRAVES",
+              // "FALTAS DESCALIFICANTES",
+            ];
+          }
+          if (idioma === "en") {
+            claves = [
+              "ORIGIN",
+              "DATE",
+              "UTILIZATION",
+              "BRIEF HISTORICAL SUMMARY",
+              "GENERAL APPEARANCE",
+              "IMPORTANT PROPORTIONS",
+              "IMORTANT PROPORTIONS",
+              "BEHAVIOUR / TEMPERAMENT",
+              "BEHAVIOUR/TEMPERAMENT",
+              "HEAD",
+              "CRANIAL REGION",
+              "FACIAL REGION",
+              "EYES",
+              "EARS",
+              "NECK",
+              "BODY",
+              "TAIL",
+              "LIMBS",
+              "FOREQUARTERS",
+              "HINDQUARTERS",
+              "GAIT / MOVEMENT",
+              "GAIT/MOVEMENT",
+              "COAT",
+              'Colour',
+              "SIZE",
+              "FAULTS",
+              // "FALTAS GRAVES",
+              // "FALTAS DESCALIFICANTES",
+            ];
+          }
 
           const filtro1 = () => {
             let dataParse1 = nombre();
@@ -182,8 +216,8 @@ const pdfAObjt = (numeroE) =>
             let indexA = dataParse1.indexOf(a);
             let indexB = dataParse1.indexOf(b);
             let toUpA = a;
-
-            if (a === "FALTAS") {
+            
+            if (a === "FALTAS" || a === "FAULTS") {
               indexB = dataParse1.length;
             } else if (indexA === -1) {
               toUpA = "";
@@ -200,19 +234,26 @@ const pdfAObjt = (numeroE) =>
                 toUp += minus[index];
               }
               indexB = dataParse1.indexOf(toUp);
-              // if (indexB === -1) {
-              //   let contador = iClaves + 1;
-              //   while (contador <= claves.length) {
-              //     indexB = dataParse1.indexOf(claves[contador]);
-              //     if (indexB === -1) {
-              //       contador++;
-              //     } else {
-              //       contador = claves.length + 2;
-              //     }
-              //   }
-              // }
+              if (indexB === -1) {
+                let conta = iClaves + 1;
+                while (conta <= claves.length) {
+                  indexB = dataParse1.indexOf(claves[conta]);
+                  if (indexB === -1) {
+                    conta++;
+                  } else {
+                    conta = claves.length + 2;
+                  }
+                }
+              }
             }
             if (indexA === -1 || indexB === -1) {
+
+              console.log(a + indexA)
+              console.log(b + ' + ' + indexB)
+              console.log(dataParse1)
+              console.log('--------------------------dataParse1----------------------------')
+
+
               return null;
             }
             let dataStrParse = "";
@@ -260,9 +301,13 @@ const pdfAObjt = (numeroE) =>
                 key = "REGIONFACIAL";
               } else if (key === "TAMAÑO") {
                 key = "TAMANOYPESO";
+              } else if (key === "BEHAVIOUR/TEMPERAMENT") {
+                key = "BEHAVIOURTEMPERAMENT";
+              } else if (key === "GAIT/MOVEMENT") {
+                key = "GAITMOVEMENT";
               }
 
-              if (key != "EXTREMIDADES") {
+              if (key != "EXTREMIDADES" || key != "LIMBS") {
                 // if (arrREt[0]) {
                 dataOk[key] = arrREt[0];
                 // }
@@ -435,4 +480,4 @@ const pdfAObjt = (numeroE) =>
 //         console.log(d)
 //     })
 
-module.exports = (num) => pdfAObjt(num);
+module.exports = (num, lang) => pdfAObjt(num, lang);

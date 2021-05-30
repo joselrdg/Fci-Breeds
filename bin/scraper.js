@@ -16,9 +16,9 @@ mongoose.connection.once("open", () => {
     `*** Connected to the database ${mongoose.connection.db.databaseName} ***`
   );  
     
-    pdfAObjt(332)
-    .then((data) => {
-      console.log(data[0])
+    pdfAObjt(1, "en")
+    .then((data,) => {
+      console.log(data[1]);
       // BreedsFci.create(data[0])
       // .then((e)=>{console.log(e);console.log('Razas guardadas en bd')})
       // .catch((e) => console.error(e))
