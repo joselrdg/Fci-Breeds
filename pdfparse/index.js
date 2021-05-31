@@ -21,7 +21,6 @@ const pdfAObjt = (numeroE, idioma) =>
         nombPdf.push(name);
       }
 
-      console.log(nombPdf);
 
       let contador = 0;
 
@@ -49,7 +48,6 @@ const pdfAObjt = (numeroE, idioma) =>
           //   .then(d => {
           //     pushImg(d)
           //       .then((e) => {
-          //         console.log(dataObj.img)
           if (contador <= 41) {
             dataOk.grupo = 1;
           } else if (contador <= 93) {
@@ -83,7 +81,6 @@ const pdfAObjt = (numeroE, idioma) =>
         //   extractimgD(contador)
         //     .then(d => {
         //       dataObj.images.push(d)
-        //       console.log(d)
         //       extimg()
         //     })
         //     .catch(e => console.error(e))
@@ -228,29 +225,27 @@ const pdfAObjt = (numeroE, idioma) =>
               "UTILISATION",
               "BREF APERCU HISTORIQUE",
               "ASPECT GENERAL",
-              "Aspect général",
+              // "Aspect général",
               "PROPORTIONS IMPORTANTES",
-              "Proportions importantes",
+              // "Proportions importantes",
               "COMPORTEMENT / CARACTERE",
               "COMPORTEMENT/CARACTERE",
-              "Comportement / caractère",
-              "Comportement/caractère",
+              // "Comportement / caractère",
+              // "Comportement/caractère",
               "TETE",
-              "Tête",
+              // "Tête",
               "REGION CRANIENNE",
               "REGION FACIALE",
               "YEUX",
-              "yeux",
               "OREILLES",
-              "Oreilles",
               "COU",
               "CORPS",
               "QUEUE",
               "MEMBRES",
               "MEMBRES ANTERIEURS",
-              "Membres antérieurs",
+              // "Membres antérieurs",
               "MEMBRES POSTERIEURS",
-              "Membres postérieurs",
+              // "Membres postérieurs",
               "ALLURES",
               "PEAU",
               "ROBE",
@@ -309,9 +304,15 @@ const pdfAObjt = (numeroE, idioma) =>
               }
               indexB = dataParse1.indexOf(toUp);
               if (indexB === -1) {
+                // console.log(
+                //   "--------------------------While----------------------------"
+                // );
                 let conta = iClaves + 1;
                 while (conta <= claves.length) {
                   indexB = dataParse1.indexOf(claves[conta]);
+
+                  // console.log(indexB);
+                  // console.log(claves[conta]);
                   if (indexB === -1) {
                     conta++;
                   } else {
@@ -321,13 +322,6 @@ const pdfAObjt = (numeroE, idioma) =>
               }
             }
             if (indexA === -1 || indexB === -1) {
-              console.log(a + indexA);
-              console.log(b + " + " + indexB);
-              // console.log(dataParse1)
-              console.log(
-                "--------------------------dataParse1----------------------------"
-              );
-
               return null;
             }
             let dataStrParse = "";
@@ -343,7 +337,7 @@ const pdfAObjt = (numeroE, idioma) =>
               // if (i  < claves.length) {
               let data = indexParse(e, claves[i + 1], i);
               if (data === null) {
-                errores.push({ pdf: `${contador}.dpf`, clave: e });
+                errores.push({ lang: idioma, pdf: `${contador}.dpf`, clave: e });
                 // return console.log(
                 //   "Error: No aparece la clave en el documento"
                 // );
@@ -379,12 +373,26 @@ const pdfAObjt = (numeroE, idioma) =>
                 key = "BEHAVIOURTEMPERAMENT";
               } else if (key === "GAIT/MOVEMENT") {
                 key = "GAITMOVEMENT";
+              } else if (key === "COMPORTEMENT/CARACTERE") {
+                key = "COMPORTEMENTCARACTERE";
+              } else if (key === "TAILLEETPOIDS") {
+                key = "TAILLEPOIDS";
+              } else if (key === "TAILLE ET POIDS") {
+                key = "TAILLEPOIDS";
+              } else if (key === "TAILLE / POIDS") {
+                key = "TAILLEPOIDS";
+              } else if (key === "TAILLE/POIDS") {
+                key = "TAILLEPOIDS";
+              } else if (key === "Défauts") {
+                key = "DEFAUTS";
+              } else if (key === "GESICHTSSCHÄDEL") {
+                key = "GESICHTSSCHADEL";
               }
 
-              if (key != "EXTREMIDADES" || key != "LIMBS") {
-                // if (arrREt[0]) {
-                dataOk[key] = arrREt[0];
-                // }
+              if (arrREt[0] ) {
+                  arrREt[0].length > 2 
+                  ? dataOk[key] = arrREt[0]
+                  : null;
               }
               // }
             });
